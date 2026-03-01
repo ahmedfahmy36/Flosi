@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast'; // <-- Add this import
 import TransactionForm from './TransactionForm';
 import Dashboard from './Dashboard';
