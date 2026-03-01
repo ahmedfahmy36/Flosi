@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from './db';
+import toast from 'react-hot-toast';
 
 export default function Settings() {
   const [closingDay, setClosingDay] = useState(20);
@@ -24,7 +25,7 @@ export default function Settings() {
       paymentDueDay: dueDay,
       creditLimit: limit
     });
-    alert('Settings updated successfully! ⚙️');
+    toast.success('Settings updated successfully! ⚙️');
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +46,7 @@ export default function Settings() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      alert('Failed to export data');
+      toast.error('Failed to export data');
     }
   };
 
@@ -75,10 +76,10 @@ export default function Settings() {
           if (data.settings?.length) await db.settings.bulkAdd(data.settings);
         });
 
-        alert('Data imported successfully! App will reload.');
-        window.location.reload();
+        toast.success('Data imported successfully! App will reload in 2s.');
+        setTimeout(() => window.location.reload(), 2000);
       } catch (error) {
-        alert('Failed to import data. Please check the file format.');
+        toast.error('Failed to import data. Please check the file format.');
       }
       if (fileInputRef.current) fileInputRef.current.value = '';
     };
