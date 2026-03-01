@@ -1,0 +1,17 @@
+{
+  "short_name": "MyPocket",
+  "name": "My Finance Pocket Tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7E22CE",
+  "background_color": "#F9FAFB",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
