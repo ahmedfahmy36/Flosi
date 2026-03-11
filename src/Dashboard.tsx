@@ -17,6 +17,10 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Payment UI States
+  const [payingTxId, setPayingTxId] = useState<number | null>(null);
+  const [payAmount, setPayAmount] = useState<number | string>('');
+
   // Set "This Month" dates automatically based on the current date
   useEffect(() => {
     if (filterType === 'thisMonth') {
@@ -35,7 +39,7 @@ export default function Dashboard() {
   const remainingPocket = totalIncome - totalExpense;
 
   // Credit Card Math
-  const totalCCDebt = ccTransactions?.reduce((sum, tx) => sum + tx.amount, 0) || 0;
+  const totalCCDebt = ccTransactions?.reduce((sum, tx) => sum + (tx.amount - (tx.paidAmount || 0)), 0) || 0;
   const creditLimit = settings?.creditLimit || 0;
   const availableCredit = creditLimit - totalCCDebt;
 
@@ -56,11 +60,27 @@ export default function Dashboard() {
 
   const chartData = Object.entries(categoryStats).map(([name, value]) => ({ name, value }));
 
-  // Mark Credit Card debt as paid
-  const markAsPaid = async (id: number) => {
+  // Mark Credit Card debt as paid (Partial or Full)
+  const handlePartialPayment = async (tx: any) => {
+    if (!payAmount || Number(payAmount) <= 0) return;
+    
+    // Avoid paying more than we owe
+    const remaining = tx.amount - (tx.paidAmount || 0);
+    const amountToPay = Math.min(Number(payAmount), remaining);
+    
+    const newPaidAmount = (tx.paidAmount || 0) + amountToPay;
+    const isFullyPaid = newPaidAmount >= tx.amount ? 1 : 0;
+    
     try {
-      await db.ccTransactions.update(id, { isPaid: 1 });
-      toast.success('Debt cleared! 🎉', { icon: '✅' });
+      if (isFullyPaid) {
+        await db.ccTransactions.update(tx.id, { isPaid: 1, paidAmount: tx.amount });
+        toast.success('Debt fully cleared! 🎉', { icon: '✅' });
+      } else {
+        await db.ccTransactions.update(tx.id, { paidAmount: newPaidAmount });
+        toast.success(`Paid ${amountToPay.toLocaleString()} EGP!`, { icon: '💸' });
+      }
+      setPayingTxId(null);
+      setPayAmount('');
     } catch (error) {
       toast.error('Failed to update status.');
     }
@@ -97,23 +117,47 @@ export default function Dashboard() {
         
         <div className="space-y-3 mt-4">
           <p className="text-xs font-bold text-purple-200 uppercase">Unpaid Debt ({totalCCDebt.toLocaleString()} EGP)</p>
-          {ccTransactions?.map(tx => (
-            <div key={tx.id} className="flex justify-between items-center bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/20">
-              <div>
-                <p className="font-bold text-sm">{tx.description}</p>
-                <p className="text-[10px] opacity-70 text-red-200">Due: {tx.dueDate}</p>
+          {ccTransactions?.map(tx => {
+            const remaining = tx.amount - (tx.paidAmount || 0);
+            return (
+              <div key={tx.id} className="flex justify-between items-center bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/20">
+                <div>
+                  <p className="font-bold text-sm">{tx.description}</p>
+                  <p className="text-[10px] opacity-70 text-red-200">Due: {tx.dueDate}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold">{remaining.toLocaleString()}</span>
+                  
+                  {payingTxId === tx.id ? (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="number" 
+                        value={payAmount}
+                        onChange={e => setPayAmount(e.target.value)}
+                        className="w-16 p-1 text-xs text-gray-900 border rounded  border-white/20 outline-none"
+                        autoFocus
+                      />
+                      <button 
+                        onClick={() => handlePartialPayment(tx)}
+                        className="bg-green-400 text-green-900 text-xs px-2 py-1.5 rounded hover:bg-green-300 font-bold"
+                      >✓</button>
+                      <button 
+                        onClick={() => setPayingTxId(null)}
+                        className="bg-red-400 text-red-900 text-xs px-2 py-1.5 rounded hover:bg-red-300 font-bold"
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => { setPayingTxId(tx.id!); setPayAmount(remaining); }}
+                      className="bg-green-400 text-green-900 text-xs px-3 py-1.5 rounded-lg font-bold hover:bg-green-300 transition-all flex items-center gap-1 shadow-sm"
+                    >
+                      💸 Pay
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold">{tx.amount.toLocaleString()}</span>
-                <button 
-                  onClick={() => markAsPaid(tx.id!)}
-                  className="bg-green-400 text-green-900 text-xs px-3 py-1.5 rounded-lg font-bold hover:bg-green-300 transition-all flex items-center gap-1 shadow-sm"
-                >
-                  ✅ Pay
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {ccTransactions?.length === 0 && (
             <div className="text-center p-2 bg-green-500/20 rounded-lg text-sm border border-green-500/30">
               All clear! No pending debts. 🎉

@@ -27,6 +27,7 @@ export interface CreditCardTransaction {
   description: string;
   dueDate: string;
   isPaid: number; 
+  paidAmount?: number;
 }
 
 export interface AppSettings {
