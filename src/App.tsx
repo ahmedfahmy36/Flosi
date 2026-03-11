@@ -52,7 +52,7 @@ export default function App() {
       <header className="bg-white p-4 border-b border-gray-100 sticky top-0 z-10 flex justify-between items-center gap-2">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-cyan-500 text-white rounded-lg flex items-center justify-center font-black text-lg shadow-md">F</div>
-          <h1 className="text-xl font-black text-cyan-500 tracking-tight">Flo<span className="text-cyan-500">si</span></h1>
+          <h1 className="text-xl font-black text-cyan-500 tracking-tight">Flo<span className="text-cyan-500">sy</span></h1>
         </div>
         
         {deferredPrompt && (

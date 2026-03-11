@@ -11,7 +11,13 @@ export interface PocketExpense {
   amount: number;
   date: string;
   description: string;
-  category: 'grocery' | 'fast food' | 'clothes' | 'desserts' | 'hagat 7elwa' | 'transportation' |'cafe'|'other';
+  category: string;
+}
+
+export interface Category {
+  id?: number;
+  name: string;
+  icon: string;
 }
 
 export interface CreditCardTransaction {
@@ -35,6 +41,7 @@ export class FinanceDatabase extends Dexie {
   expenses!: Table<PocketExpense>;
   ccTransactions!: Table<CreditCardTransaction>;
   settings!: Table<AppSettings>;
+  categories!: Table<Category>;
 
   constructor() {
     super('MyFinanceDB');
@@ -53,6 +60,15 @@ export class FinanceDatabase extends Dexie {
       ccTransactions: '++id, date, dueDate, isPaid',
       settings: '++id'
     });
+
+    // v3 adds custom categories
+    this.version(3).stores({
+      incomes: '++id, date',
+      expenses: '++id, date, category',
+      ccTransactions: '++id, date, dueDate, isPaid',
+      settings: '++id',
+      categories: '++id, name'
+    });
   }
 }
 
@@ -67,5 +83,20 @@ export async function initializeSettings() {
       paymentDueDay: 15,
       creditLimit: 30000 // Default limit, you can change this in the app
     });
+  }
+
+  const existingCategories = await db.categories.count();
+  if (existingCategories === 0) {
+    const defaultCategories = [
+      { name: 'grocery', icon: '🛒' },
+      { name: 'fast food', icon: '🍔' },
+      { name: 'clothes', icon: '👕' },
+      { name: 'desserts', icon: '🍰' },
+      { name: 'hagat 7elwa', icon: '✨' },
+      { name: 'transportation', icon: '🚗' },
+      { name: 'cafe', icon: '☕' },
+      { name: 'other', icon: '📦' },
+    ];
+    await db.categories.bulkAdd(defaultCategories);
   }
 }

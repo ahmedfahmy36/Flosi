@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from './db';
+import { useLiveQuery } from 'dexie-react-hooks';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
   const [closingDay, setClosingDay] = useState(20);
   const [dueDay, setDueDay] = useState(15);
   const [limit, setLimit] = useState(30000);
+  
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('🔖');
+
+  const categories = useLiveQuery(() => db.categories.toArray());
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -26,6 +32,37 @@ export default function Settings() {
       creditLimit: limit
     });
     toast.success('Settings updated successfully! ⚙️');
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCatName.trim() || !newCatIcon.trim()) {
+      toast.error('Name and Icon are required');
+      return;
+    }
+    try {
+      await db.categories.add({
+        name: newCatName.toLowerCase().trim(),
+        icon: newCatIcon.trim()
+      });
+      toast.success('Category added! 🎉');
+      setNewCatName('');
+      setNewCatIcon('🔖');
+    } catch (e) {
+      toast.error('Could not add category');
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    if (categories && categories.length <= 1) {
+      toast.error('You must have at least one category');
+      return;
+    }
+    try {
+      await db.categories.delete(id);
+      toast.success('Category deleted');
+    } catch (e) {
+      toast.error('Could not delete category');
+    }
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,6 +183,50 @@ export default function Settings() {
           />
         </div>
       </div>
+
+      <h2 className="text-2xl font-bold text-gray-800 pt-4">Category Management</h2>
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <label className="text-xs font-bold text-gray-500 uppercase">Category Name</label>
+            <input 
+              type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="e.g., Gym"
+              className="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
+            />
+          </div>
+          <div className="w-20">
+            <label className="text-xs font-bold text-gray-500 uppercase">Icon</label>
+            <input 
+              type="text" value={newCatIcon} onChange={(e) => setNewCatIcon(e.target.value)}
+              className="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none text-center"
+            />
+          </div>
+          <button onClick={handleAddCategory} className="py-3 px-4 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800">
+            Add
+          </button>
+        </div>
+
+        <div className="space-y-2 mt-4 max-h-48 overflow-y-auto pr-2">
+          {categories?.map((cat) => (
+            <div key={cat.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{cat.icon}</span>
+                <span className="font-bold text-sm capitalize">{cat.name}</span>
+              </div>
+              <button 
+                onClick={() => handleDeleteCategory(cat.id!)}
+                className="text-rose-500 font-bold text-xs px-2 py-1 rounded bg-rose-50 hover:bg-rose-100"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+
+      </div>
+
     </div>
   );
 }

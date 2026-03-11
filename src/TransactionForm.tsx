@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
 import { calculateDueDate } from './utils';
 import toast from 'react-hot-toast'; 
@@ -9,6 +10,8 @@ export default function TransactionForm() {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState('');
+  
+  const categories = useLiveQuery(() => db.categories.toArray());
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,8 @@ const handleSubmit = async (e: React.FormEvent) => {
       if (type === 'income') {
         await db.incomes.add({ amount: parsedAmount, date });
       } else if (type === 'pocket') {
-        await db.expenses.add({ amount: parsedAmount, date, description, category: category as any });
+        const catValue = category || categories?.[0]?.name || 'other';
+        await db.expenses.add({ amount: parsedAmount, date, description, category: catValue });
       } else {
         const dueDate = await calculateDueDate(date);
         await db.ccTransactions.add({ amount: parsedAmount, date, description, dueDate, isPaid: 0 });
@@ -95,17 +99,15 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
             <select 
-              value={category} onChange={(e) => setCategory(e.target.value)}
+              value={category || (categories && categories.length > 0 ? categories[0].name : '')} 
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none"
             >
-              <option value="grocery">Grocery 🛒</option>
-              <option value="fast food">Fast Food 🍔</option>
-              <option value="clothes">Clothes 👕</option>
-              <option value="desserts">Desserts 🍰</option>
-              <option value="hagat 7elwa">Hagat 7elwa ✨</option>
-              <option value="transportation">Transportation 🚗</option>
-              <option value="cafe">Cafe ☕</option>
-              <option value="other">Other 📦</option>
+              {categories?.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)} {cat.icon}
+                </option>
+              ))}
             </select>
           </div>
         )}
