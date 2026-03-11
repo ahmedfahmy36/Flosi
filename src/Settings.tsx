@@ -125,7 +125,7 @@ export default function Settings() {
 
   return (
     <div className="p-6 max-w-md mx-auto space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">App Settings</h2>
+      <h2 className="text-2xl font-bold text-gray-800">Credit Card Settings</h2>
       
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-5">
         <div>
@@ -157,33 +157,6 @@ export default function Settings() {
           Save Settings
         </button>
       </div>
-
-      <h2 className="text-2xl font-bold text-gray-800 pt-4">Data Management</h2>
-      
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
-        <p className="text-sm text-gray-500">
-          Export your data to a JSON file to create a backup, or safely copy it to another device. 
-          Importing a file will <strong>overwrite</strong> all current data.
-        </p>
-
-        <div className="flex flex-col gap-3">
-          <button onClick={exportData} className="w-full py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors shadow-sm">
-            ⬇️ Export Data (Backup)
-          </button>
-          
-          <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-rose-500 text-white font-bold rounded-lg hover:bg-rose-600 transition-colors shadow-sm">
-            ⬆️ Import Data (Restore)
-          </button>
-          <input 
-            type="file" 
-            accept=".json"
-            ref={fileInputRef}
-            onChange={importData}
-            className="hidden" 
-          />
-        </div>
-      </div>
-
       <h2 className="text-2xl font-bold text-gray-800 pt-4">Category Management</h2>
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
         
@@ -226,6 +199,33 @@ export default function Settings() {
         </div>
 
       </div>
+      <h2 className="text-2xl font-bold text-gray-800 pt-4">Data Management</h2>
+      
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        <p className="text-sm text-gray-500">
+          Export your data to a JSON file to create a backup, or safely copy it to another device. 
+          Importing a file will <strong>overwrite</strong> all current data.
+        </p>
+
+        <div className="flex flex-col gap-3">
+          <button onClick={exportData} className="w-full py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors shadow-sm">
+            ⬇️ Export Data (Backup)
+          </button>
+          
+          <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-rose-500 text-white font-bold rounded-lg hover:bg-rose-600 transition-colors shadow-sm">
+            ⬆️ Import Data (Restore)
+          </button>
+          <input 
+            type="file" 
+            accept=".json"
+            ref={fileInputRef}
+            onChange={importData}
+            className="hidden" 
+          />
+        </div>
+      </div>
+
+
 
     </div>
   );
