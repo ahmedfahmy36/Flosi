@@ -19,6 +19,7 @@ export default function History() {
   const incomes = useLiveQuery(() => db.incomes.toArray()) || [];
   const expenses = useLiveQuery(() => db.expenses.toArray()) || [];
   const ccTransactions = useLiveQuery(() => db.ccTransactions.toArray()) || [];
+  const categories = useLiveQuery(() => db.categories.toArray());
 
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'cc'>('all');
   
@@ -199,15 +200,15 @@ export default function History() {
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
                   <select 
-                    value={editingItem.category || 'hagat 7elwa'} 
+                    value={editingItem.category || (categories && categories.length > 0 ? categories[0].name : '')} 
                     onChange={e => setEditingItem({...editingItem, category: e.target.value})}
                     className="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
                   >
-                    <option value="grocery">Grocery 🛒</option>
-                    <option value="fast food">Fast Food 🍔</option>
-                    <option value="clothes">Clothes 👕</option>
-                    <option value="desserts">Desserts 🍰</option>
-                    <option value="hagat 7elwa">Hagat 7elwa ✨</option>
+                    {categories?.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)} {cat.icon}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
